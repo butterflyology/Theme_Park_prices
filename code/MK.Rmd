@@ -144,7 +144,7 @@ newer <- newer_data %>%
   coord_cartesian(ylim = c(0, 130))
 newer
 
-ggplot_build(newer)$data
+# ggplot_build(newer)$data # This pulls out data from the plot so we can see what color went with each point. 
 ```
 
 
