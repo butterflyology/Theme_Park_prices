@@ -35,7 +35,7 @@ Throughout these posts, I will follow a set of best practices for data science t
 
 Here, we take care of some preliminaries that include setting the random seed and importing `R` packages we will use througout this project.
 
-```{r prelims}
+```{r prelims, echo = FALSE, results = FALSE, message = FALSE}
 set.seed(982352)
 options("getSymbols.warning4.0" = FALSE)
 
@@ -53,7 +53,7 @@ Here we import the and check the data to ensure everything was imported properly
 1. `Price` - The cose of single-day admission to the Magic Kingdom
 1. `CEO` - The Disney CEO at the time of the price.
 
-```{r import}
+```{r import, echo = FALSE}
 data <- read_csv("../data/MK_prices.csv", col_names = TRUE, col_types = cols(Date = col_date("%Y-%m-%d"), Price = col_double(), CEO = col_character()))
 
 col_names <- c("Date", "Price (USD)", "CEO")
@@ -68,7 +68,7 @@ knitr::kable(x = data, format = "html", align = "c", col.names = col_names) %>%
 
 You always want to look at the data. Here are the dates of the increases on the horizontal axis (x-axis) and the cost of admission to the Magic Kingdom on the vertical axis (y-axis) in US Dollars. 
 
-```{r plot_1, eval = FALSE}
+```{r plot_1, echo = FALSE, results = FALSE}
 data %>% 
   ggplot(aes(x = Date, y = Price, col = CEO)) +
   geom_point(size = 2.5) +
@@ -83,7 +83,7 @@ Does it look like Mr. Iger has upped the rate of admission increases faster than
 We will pull out the Consumer Price Index (CPI) for the dates the admission prices went into effect and normalize them based on a 1971 baseline (the year WDW opened). Then we will join these values and convert the older prices to 2018 US Dollars. We could go to a website like the St. Louis Federal Reserve Bank and manually look up the adjustments, but why do that when we could write code?
 
 
-```{r CPI, warnings = FALSE}
+```{r CPI, warning = FALSE, echo = FALSE, results = "hide"}
 getSymbols("CPIAUCSL", src = "FRED")
 str(CPIAUCSL)
 
@@ -94,8 +94,7 @@ avg_cpi <- avg_cpi %>%
   mutate(Year = year(Date)) %>%
   select(-Date)
 
-# inelegant, but it works
-# Add a column wit the year to our data set, we will join by this column
+# Inelegant, but it works, add a column with the year to our data set, we will join by this column
 new_data <- data %>% 
   mutate(Year = year(Date))
 magic_for(print, silent = TRUE)
@@ -111,8 +110,21 @@ newer_data <- newer_data %>%
 ```
 
 
-Now we have our admission prices adjusted for inflation.
+Now we have our admission prices adjusted for inflation. Let's plot:
 
+```{r adj_plot, echo = FALSE}
+newer_data %>% 
+  ggplot(aes(x = Date, y = ADJ_Price, col = CEO)) +
+  geom_point(size = 2.5) +
+  scale_color_discrete(breaks = c("Disney", "Tatum", "Walker", "Miller", "Eisner", "Iger")) +
+  theme_bw() + 
+  theme(legend.position = c(0.15, 0.75), legend.text = element_text(size = 15)) +
+  labs(y = "Adjusted Price (USD)")
+```
+
+What kind of blows my mind is that the Magic Kingdom's prices have, on occasion, not kept up with inflation. I'm sure that Disney management would take that to mean they haven't raised prices enough. When I saw this I went and manually checked the adjustments I calculated using the Bureau of Labor Statistics own [calculator](https://data.bls.gov/cgi-bin/cpicalc.pl) and I was pretty close each time. Certainly, the trends observed in the data hold up.
+
+On to the questions.
 
 # Questions 1 & 2
 
@@ -121,11 +133,9 @@ The first two questions are related. To refresh your recollection:
 1. Has the rate of increase gotten higher recently?
 1. Did the different Disney CEOs raise ticket prices at different rates? 
 
-Let's look at the rate of increase for each CEO. We will fit a linear regression for each CEO and plot it to the data. We will use the same plot as before and overlay the lines to it. Roy O. Disney was CEO for only one price point and won't get a line. 
+Let's look at the rate of increase for each CEO. We will fit a straight line through each CEOs prices and use that line to describe each pricing regime. For those playing along at home, this is called a linear regression. We will use the same plot as before and overlay the lines to it. Roy O. Disney was CEO for only one price point and won't get a line. 
 
 The code is the same as above with just one line added:
-
-`geom_smooth(method = "lm", formula = y ~ x, se = TRUE, show.legend = FALSE, level = 0.95)`
 
 ```{r lines, echo = FALSE, warning = FALSE}
 newer_data %>% 
@@ -138,18 +148,52 @@ newer_data %>%
   geom_smooth(method = "lm", formula = y ~ x, se = TRUE, show.legend = FALSE, level = 0.95)
 ```
 
-The lines running through the data represent 
+
 The shaded reagions around the lines represent the confidence interval around the line.
 
-Are the slopes between Michael Eisner and Bob Iger the same? They don
+The steepness of the lines is what we are interested in. Are the slopes between Michael Eisner and Bob Iger the same? They don't appear to be the same but I want to check. We will use a procedure called `ANCOVA` or **AN**alysis of **COVA**riance. 
 
 
-Let's select the rows from our data that are associated with Eisner or Iger. 
-```{r, eval = FALSE}
-Eisner_Iger <- data %>% 
+```{r ancova, echo = FALSE, results = FALSE}
+# create a data set that contains just the Eisner and Iger rows
+Eisner_Iger <- newer_data %>% 
   filter(CEO == "Eisner" | CEO == "Iger")
 
+# a model with the interaction term
+mod1 <- aov(ADJ_Price ~ Date * CEO, data = Eisner_Iger)
+summary(mod1)
 
+# a model without the interaction term
+mod2 <- aov(ADJ_Price ~ Date + CEO, data = Eisner_Iger)
+summary(mod2)
+
+anova(mod1, mod2)
+# Removing the interaction term shows that does significantly affect the model. But we don't know how the slope changes.
+
+
+# We need to further parse the data and run a linear regression for the two most recent CEOs
+Eisner <- newer_data %>%
+  filter(CEO == "Eisner")
+
+Iger <- newer_data %>%
+  filter(CEO == "Iger")
+
+lm_Eisner <- lm(ADJ_Price ~ Date, data = Eisner)
+lm_Iger <- lm(ADJ_Price ~ Date, data = Iger)
+
+summary(lm_Eisner)
+summary(lm_Iger)
+# The slopes are very different indeed.
+
+
+Eisner_Iger %>%
+  ggplot(aes(x = Date, y = ADJ_Price, col = CEO)) +
+  geom_point(size = 2.5) +
+  labs(y = "Adjusted Price (USD)") +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE, show.legend = FALSE, level = 0.95) +
+  theme_bw() +
+  theme(legend.position = c(0.15, 0.75), legend.text = element_text(size = 15))
 
 ```
 
+We fit the model without the interaction term (`Date + CEO`) to ask if CEO has a significant effect on the dependant variable. 
