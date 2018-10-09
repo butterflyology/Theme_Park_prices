@@ -38,8 +38,9 @@ Here, we take care of some preliminaries that include setting the random seed an
 ```{r prelims}
 set.seed(982352)
 
-library("tidyverse") # This is a "meta-package" that contains lots of other useful packages, like ggplot2 and readr
+library("tidyverse") # This is a "meta-package" that contains lots of other useful packages, like ggplot2 and readr.
 library('kableExtra') # We will use this to generate a nice looking table in `html`.
+library("lubridate") # we will need some functions from here to work with date data
 ```
 
 
@@ -60,12 +61,14 @@ knitr::kable(x = data, format = "html", align = "c", col.names = col_names) %>%
   scroll_box(width = "650px", height = "300px")
 ```
 
+Note that `readr` added the "day" to each observation in the `Date` columns. I didn't tell it to do that, it is just the way the program is. Apparently, the world will end if you don't have a day in your date object. I don't truly know the dates that the prices were in effect but it won't matter for our analysis, but it is frustrating that the program added data.
+
 
 # Visualize
 
 You always want to look at the data. Here are the dates of the increases on the horizontal axis (x-axis) and the cost of admission to the Magic Kingdom on the vertical axis (y-axis) in US Dollars. 
 
-```{r plot_1}
+```{r plot_1, eval = FALSE}
 data %>% 
   ggplot(aes(x = Date, y = Price, col = CEO)) +
   geom_point(size = 2.5) +
@@ -75,6 +78,55 @@ data %>%
   labs(y = "Price (USD)")
 ```
 
+It really does look like Mr. Iger has upped the rate of admission increases, doesn't it? This is nice and all but isn't as informative as we need for a meaningful comparison. We need to adjust the prices for inflation. We will adjust inflation using the "Consumer Price Index for All Urban Consumers: All Items."
+
+
+
+```{r}
+library("quantmod")
+getSymbols("CPIAUCSL", src = "FRED")
+dim(CPIAUCSL)
+head(CPIAUCSL)
+tail(CPIAUCSL)
+
+p <- xts(data$Price, data$Date)
+colnames(p) <- "price"
+head(p)
+
+avg.cpi <- apply.yearly(CPIAUCSL, mean)
+cf <- avg.cpi / as.numeric(avg.cpi['1971'])
+dat <- merge(p, cf, all = FALSE)
+dat$adj <- dat[, 1] * dat[, 2]
+head(dat)
+tail(dat)
+
+
+# Now multiply the 1973 amount times the CPIAUCSL number
+```
+
+
+
+
+
+
+```{r years, eval = FALSE}
+years <- unique(year(data$Date))
+
+# initialize a blank column to hold the data
+adj_val <- matrix(nrow = length(years), ncol = 2)
+colnames(adj_val) <- c("Year", "Avg_adj")
+
+  
+for i in years:
+  a
+```
+
+
+
+
+
+
+
 
 # Questions 1 & 2
 
@@ -83,9 +135,13 @@ The first two questions are related. To refresh your recollection:
 1. Has the rate of increase gotten higher recently?
 1. Did the different Disney CEOs raise ticket prices at different rates? 
 
-Let's look at the rate of increase for each CEO. We will fit a linear regression for each CEO and plot it to the data. We will use the same plot as before and overlay the lines to it. Roy O. Disney was CEO for only one price point and won't get a line.
+Let's look at the rate of increase for each CEO. We will fit a linear regression for each CEO and plot it to the data. We will use the same plot as before and overlay the lines to it. Roy O. Disney was CEO for only one price point and won't get a line. 
 
-```{r lines}
+The code is the same as above with just one line added:
+
+`geom_smooth(method = "lm", formula = y ~ x, se = TRUE, show.legend = FALSE, level = 0.95)`
+
+```{r lines, echo = FALSE, warning = FALSE}
 data %>% 
   ggplot(aes(x = Date, y = Price, col = CEO)) +
   geom_point(size = 2.5) +
@@ -97,3 +153,16 @@ data %>%
 ```
 
 The shaded reagions around the lines represent the confidence interval around the line.
+
+Are the slopes between Michael Eisner and Bob Iger the same? Earlier we used a linear regression to find lines that best describe each set of admission prices by CEO. We will ask if the amount of the price increase was significantly different between these CEO
+
+
+Let's select the rows from our data that are associated with Eisner or Iger. 
+```{r, eval = FALSE}
+Eisner_Iger <- data %>% 
+  filter(CEO == "Eisner" | CEO == "Iger")
+
+
+
+```
+
