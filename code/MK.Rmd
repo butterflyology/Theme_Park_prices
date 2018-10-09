@@ -37,22 +37,24 @@ Here, we take care of some preliminaries that include setting the random seed an
 
 ```{r prelims}
 set.seed(982352)
+options("getSymbols.warning4.0" = FALSE)
 
 library("tidyverse") # This is a "meta-package" that contains lots of other useful packages, like ggplot2 and readr.
 library('kableExtra') # We will use this to generate a nice looking table in `html`.
 library("lubridate") # we will need some functions from here to work with date data
+library("quantmod") # we will use this to get consumer price index data
+library("magicfor") # package to save output from a for loop
 ```
 
 
 Here we import the and check the data to ensure everything was imported properly. I am using the `tidyverse` suite of packages, which have a slightly different syntaax than base `R`. There are three columns in the data set:
 
-1. `Date` - The date the admission price was in effect. It is formatted as `YYYY-MM`, which can be parsed using the code `%Y-%m`.
+1. `Date` - The date the admission price was in effect. It is formatted as in ISO-8601 (`YYYY-MM-DD`), which can be parsed using the code `%Y-%m-%d`.
 1. `Price` - The cose of single-day admission to the Magic Kingdom
 1. `CEO` - The Disney CEO at the time of the price.
 
 ```{r import}
-data <- read_csv("../data/MK_prices.csv", col_names = TRUE, col_types = cols(Date = col_date("%Y-%m"), Price = col_double(), CEO = col_character()))
-
+data <- read_csv("../data/MK_prices.csv", col_names = TRUE, col_types = cols(Date = col_date("%Y-%m-%d"), Price = col_double(), CEO = col_character()))
 
 col_names <- c("Date", "Price (USD)", "CEO")
 knitr::kable(x = data, format = "html", align = "c", col.names = col_names) %>%
@@ -60,8 +62,6 @@ knitr::kable(x = data, format = "html", align = "c", col.names = col_names) %>%
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE) %>%
   scroll_box(width = "650px", height = "300px")
 ```
-
-Note that `readr` added the "day" to each observation in the `Date` columns. I didn't tell it to do that, it is just the way the program is. Apparently, the world will end if you don't have a day in your date object. I don't truly know the dates that the prices were in effect but it won't matter for our analysis, but it is frustrating that the program added data.
 
 
 # Visualize
@@ -78,54 +78,40 @@ data %>%
   labs(y = "Price (USD)")
 ```
 
-It really does look like Mr. Iger has upped the rate of admission increases, doesn't it? This is nice and all but isn't as informative as we need for a meaningful comparison. We need to adjust the prices for inflation. We will adjust inflation using the "Consumer Price Index for All Urban Consumers: All Items."
+Does it look like Mr. Iger has upped the rate of admission increases faster than the other CEOs? Maybe. But this isn't an apples to apples comparison. This is nice and all but isn't as informative as we need for a meaningful inference. We need to adjust the prices for inflation. We will adjust inflation using the "Consumer Price Index for All Urban Consumers: All Items" from the rockstars over at the Bureau of Labor Statistics.
+
+We will pull out the Consumer Price Index (CPI) for the dates the admission prices went into effect and normalize them based on a 1971 baseline (the year WDW opened). Then we will join these values and convert the older prices to 2018 US Dollars. We could go to a website like the St. Louis Federal Reserve Bank and manually look up the adjustments, but why do that when we could write code?
 
 
-
-```{r}
-library("quantmod")
+```{r CPI, warnings = FALSE}
 getSymbols("CPIAUCSL", src = "FRED")
-dim(CPIAUCSL)
-head(CPIAUCSL)
-tail(CPIAUCSL)
-
-p <- xts(data$Price, data$Date)
-colnames(p) <- "price"
-head(p)
+str(CPIAUCSL)
 
 avg.cpi <- apply.yearly(CPIAUCSL, mean)
-cf <- avg.cpi / as.numeric(avg.cpi['1971'])
-dat <- merge(p, cf, all = FALSE)
-dat$adj <- dat[, 1] * dat[, 2]
-head(dat)
-tail(dat)
+avg_cpi <- data.frame(Date = index(avg.cpi), avg.cpi)
+rownames(avg_cpi) <- NULL
+avg_cpi <- avg_cpi %>% 
+  mutate(Year = year(Date)) %>%
+  select(-Date)
 
+# inelegant, but it works
+# Add a column wit the year to our data set, we will join by this column
+new_data <- data %>% 
+  mutate(Year = year(Date))
+magic_for(print, silent = TRUE)
+for(year in new_data$Year){
+  print(tail(avg_cpi$CPIAUCSL / avg_cpi[avg_cpi$Year == year, 1], 1))
+}
+adjustment <- magic_result_as_dataframe() 
+colnames(adjustment) <- c("Year", "ADJ")
 
-# Now multiply the 1973 amount times the CPIAUCSL number
+newer_data <- left_join(x = new_data, y = adjustment, by = "Year")
+newer_data <- newer_data %>% 
+  mutate(ADJ_Price = Price * ADJ)
 ```
 
 
-
-
-
-
-```{r years, eval = FALSE}
-years <- unique(year(data$Date))
-
-# initialize a blank column to hold the data
-adj_val <- matrix(nrow = length(years), ncol = 2)
-colnames(adj_val) <- c("Year", "Avg_adj")
-
-  
-for i in years:
-  a
-```
-
-
-
-
-
-
+Now we have our admission prices adjusted for inflation.
 
 
 # Questions 1 & 2
@@ -142,19 +128,20 @@ The code is the same as above with just one line added:
 `geom_smooth(method = "lm", formula = y ~ x, se = TRUE, show.legend = FALSE, level = 0.95)`
 
 ```{r lines, echo = FALSE, warning = FALSE}
-data %>% 
-  ggplot(aes(x = Date, y = Price, col = CEO)) +
+newer_data %>% 
+  ggplot(aes(x = Date, y = ADJ_Price, col = CEO)) +
   geom_point(size = 2.5) +
   scale_color_discrete(breaks = c("Disney", "Tatum", "Walker", "Miller", "Eisner", "Iger")) +
   theme_bw() + 
   theme(legend.position = c(0.15, 0.75), legend.text = element_text(size = 15)) +
-  labs(y = "Price (USD)") +
+  labs(y = "Adjusted Price (USD)") +
   geom_smooth(method = "lm", formula = y ~ x, se = TRUE, show.legend = FALSE, level = 0.95)
 ```
 
+The lines running through the data represent 
 The shaded reagions around the lines represent the confidence interval around the line.
 
-Are the slopes between Michael Eisner and Bob Iger the same? Earlier we used a linear regression to find lines that best describe each set of admission prices by CEO. We will ask if the amount of the price increase was significantly different between these CEO
+Are the slopes between Michael Eisner and Bob Iger the same? They don
 
 
 Let's select the rows from our data that are associated with Eisner or Iger. 
