@@ -1,5 +1,6 @@
 ---
-title: "Magic Kingdom Ticket Prices"
+title: "The cost of admission"
+subtitle: "Magic Kingdom Ticket Prices 1971-2018"
 author: "Chris Hamm"
 date: "`r Sys.Date()`"
 output: 
@@ -18,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 ```
 
 # Introduction
-Trips to Walt Disney World are expensive and one of the more frustration things is the price of a ticket. It seems that every few months we hear about another hike for the cost of tickets. With the recent news that [variable pricing](http://time.com/money/5405838/disney-world-ticket-prices-2018/) for tickets is one the way I wanted to take a look at the history of the cost of a single day admission to the Magic Kingdom and ask a few quesitons:
+Trips to Walt Disney World are expensive. Add to the expense the frustration of ever increasing ticket prices. It seems that every few months we hear about another hike for the cost of tickets. With the recent news that [variable pricing](http://time.com/money/5405838/disney-world-ticket-prices-2018/) for tickets is one the way I wanted to take a look at the history of the cost of a single day admission to the Magic Kingdom and ask a few quesitons:
 
 1. Has the rate of increase gotten higher recently?
 1. Did the different Disney CEOs raise ticket prices at different rates? 
@@ -28,14 +29,14 @@ Trips to Walt Disney World are expensive and one of the more frustration things 
 
 1. Yes, the admission price under Bob Iger is increasing faster than it did under Michael Eisner.
 1. No, we can't tell them apart but this is due to statistical issues with the number of increases made under each CEO. 
-1. Yes. Yes. Yes. Adjusted for inflation, the cost of a one-day ticket to the Magic Kingdom in 1971 was \$21.65 and today it is approximately \$120.
+1. **Yes**. **Yes**. **Yes**. Adjusted for inflation, the cost of a one-day ticket to the Magic Kingdom in 1971 was \$21.65 and today it is approximately \$122.
 
 
 # Data
 
-To ask these questions I needed data. I needed data on the historic price of admission to the Magic Kingdom, and also the dates those tickets prices were in effect and the Disney CEO at the time. It wasn't hard to find websites with the history of admission prices. Whenever possible, I selected the most expensive ticket available that was not a park hopper. I used the data from this [site](http://allears.net/walt-disney-world/wdw-planning/wdw-ticket-increase-guide/) and cross referenced it [here](https://www.travelandleisure.com/trip-ideas/disney-vacations/disney-world-ticket-costs-over-time). I got the dates for the Disney CEOs from the book [Disney War](https://en.wikipedia.org/wiki/DisneyWar) by James B. Stewart and cross referenced them with this [Wikipedia article](https://en.wikipedia.org/wiki/List_of_management_of_The_Walt_Disney_Company). If I included the wrong data in this post, please let me know and point me to your source so I can correct the record.
+To ask these questions I needed data. I needed data on the historic price of admission to the Magic Kingdom, the dates those ticket prices were in effect, and the Disney CEO at the time. It wasn't hard to find websites with the history of admission prices. Whenever possible, I selected the most expensive ticket available that was not a park hopper. I used the data from this [site](http://allears.net/walt-disney-world/wdw-planning/wdw-ticket-increase-guide/) and cross referenced it [here](https://www.travelandleisure.com/trip-ideas/disney-vacations/disney-world-ticket-costs-over-time). I got the dates for the Disney CEOs from the book [Disney War](https://en.wikipedia.org/wiki/DisneyWar) by James B. Stewart and cross referenced them with this [Wikipedia article](https://en.wikipedia.org/wiki/List_of_management_of_The_Walt_Disney_Company). Please let me know if I inadvertently included the incorrect data in this post, and please point me to your source so I can update the post.
 
-Because this is a data science blog post, I've posted the code to a [repository](https://github.com/butterflyology/Theme_Park_prices) so that anyone with a computer can recreate the analyses presented here.
+Because this is a data science blog post, I've posted the code to a [repository](https://github.com/butterflyology/Theme_Park_prices) so that anyone with a computer and the desire can recreate the analyses presented here.
 
 
 ```{r prelims, echo = FALSE, results = FALSE, message = FALSE}
@@ -69,9 +70,9 @@ knitr::kable(x = data, format = "html", align = "c", col.names = col_names) %>%
 ```
 
 
-# Visualize
+# Visuals
 
-You always want to look at the data. Here are the dates of the admission price on the horizontal axis (x-axis) and the cost of admission to the Magic Kingdom on the vertical axis (y-axis) in US Dollars.
+You always want to look at the data. Here I plot the dates of the admission price on the horizontal axis (x-axis) and the cost of admission to the Magic Kingdom on the vertical axis (y-axis) in US Dollars.
 
 ```{r plot_1, echo = FALSE, results = FALSE}
 prices <- data %>% 
@@ -85,16 +86,15 @@ prices <- data %>%
 prices
 ```
 
-Does it look like Mr. Iger has upped the rate of admission increases faster than the other CEOs? Maybe. But this isn't an apples to apples comparison. This is nice and all but isn't as informative as we need for a meaningful inference. We need to adjust the prices for inflation. We will adjust inflation using the "Consumer Price Index for All Urban Consumers: All Items" from the rockstars over at the Bureau of Labor Statistics.
+Does it look like Mr. Iger has upped the rate of admission increases faster than the other CEOs? Maybe. But this isn't an apples to apples comparison. This is a pretty plot but isn't a fair comparison. We need to adjust the prices for inflation. We will adjust inflation using the "Consumer Price Index for All Urban Consumers: All Items" from the rockstars over at the Bureau of Labor Statistics.
 
-We will pull out the Consumer Price Index (CPI) for the dates the admission prices went into effect and normalize them based on a 1971 baseline (the year WDW opened). Then we will join these values and convert the older prices to 2018 US Dollars. We could go to a website like the St. Louis Federal Reserve Bank and manually look up the adjustments, but why do that when we could write code?
+We will pull out the Consumer Price Index (CPI) for the dates the admission prices went into effect and normalize them based on a 1971 baseline (the year WDW opened). Then we convert the older prices to 2018 US Dollars.
 
 We've added three new columns to out dataset:
 
 1. `Year` - We used this column to calculate the CPI
 1. `Adjustment` - The adjusted CPI value
 1. `Adjusted Price` - The original `Price` of a ticket times the `Adjustment`.
-
 
 ```{r CPI, warning = FALSE, echo = FALSE, results = "hide"}
 getSymbols("CPIAUCSL", src = "FRED")
@@ -119,7 +119,8 @@ colnames(adjustment) <- c("Year", "ADJ")
 
 newer_data <- left_join(x = new_data, y = adjustment, by = "Year")
 newer_data <- newer_data %>% 
-  mutate(ADJ_Price = Price * ADJ)
+  mutate(ADJ_Price = Price * ADJ) %>%
+  filter(!duplicated(Date))
 ```
 
 ```{r newer_data, echo = FALSE}
@@ -144,7 +145,8 @@ newer <- newer_data %>%
   coord_cartesian(ylim = c(0, 130))
 newer
 
-# ggplot_build(newer)$data # This pulls out data from the plot so we can see what color went with each point. 
+# This pulls out data from the plot so we can see what color went with each point. 
+#ggplot_build(newer)$data
 ```
 
 
@@ -160,18 +162,18 @@ grid.arrange(prices, newer, ncol = 2)
 ```
 
 
-
-What kind of blows my mind is that the Magic Kingdom's prices have, on occasion, not kept up with inflation. I'm sure that Disney management would take that to mean they haven't raised prices enough. When I saw this I went and manually checked the adjustments I calculated using the Bureau of Labor Statistics own [calculator](https://data.bls.gov/cgi-bin/cpicalc.pl) and I was pretty close each time. Certainly, the trends observed in the data hold up.
+What kind of blows my mind is that the Magic Kingdom's prices have, on occasion, not kept up with inflation. When I saw this I went and manually checked the adjustments I calculated using the Bureau of Labor Statistics own [calculator](https://data.bls.gov/cgi-bin/cpicalc.pl) and my calculations were pretty close each time (within \$0.20).
 
 On to the questions.
 
-# Question 1
+
+# Eisner vs. Iger
 
 The first two questions are related. To refresh your recollection: 
 
 1. Has the rate of increase gotten higher recently?
 
-Let's look at the rate of increase for each CEO. We will fit a straight line through each CEOs prices and use that line to describe each pricing regime. For those playing along at home, this is called a linear regression. We will use the same plot as before and overlay the lines to it. Roy O. Disney was CEO for only one price point and won't get a line. 
+Let's look at the rate of increase for each CEO. We will fit a straight line through each CEOs prices and use that line to describe each pricing regime. We will use the same plot as before and overlay lines on to it. Roy O. Disney was CEO for only one price point and won't get a line. 
 
 
 ```{r lines, echo = FALSE, warning = FALSE}
@@ -187,9 +189,9 @@ newer_data %>%
 ```
 
 
-The shaded reagions around the lines represent the confidence interval around the line.
+The shaded reagions around the lines represent the confidence interval around the line. A confidence interval is how sure we are of our estimate of the line, and narrow intervals are better.
 
-The steepness of the lines is what we are interested in. Are the slopes between Michael Eisner and Bob Iger the same? They don't appear to be the same but I want to check.
+But we are interested in the steepness (slope) of the lines.Are the slopes between Michael Eisner and Bob Iger the same? They don't appear to be the same but I want to check. I ran another analysis to ask this question.
 
 
 ```{r ancova, echo = FALSE, results = FALSE}
@@ -206,7 +208,7 @@ mod2 <- aov(ADJ_Price ~ Date + CEO, data = Eisner_Iger)
 summary(mod2)
 
 anova(mod1, mod2)
-# Removing the interaction term shows that does significantly affect the model. But we don't know how the slope changes.
+# Removing the interaction term shows that CEO does significantly affect the model. But we don't know how the slope changes.
 
 
 # We need to further parse the data and run a linear regression for the two most recent CEOs
@@ -236,8 +238,11 @@ Eisner_Iger %>%
 ```
 
 
-# Question 2
+# Rate of increase
+
 Did the different Disney CEOs raise ticket prices at different rates? 
+
+No, we can't tell them apart.
 
 Looking at the adjusted for inflation figure, it does seem that the different CEOs raised ticket prices differently. If we ask this all at the same time the answer is suprisingly, no. But this has more to do with the number of data points we have and the fact that the CEOs raised prices a different number of times. For example, there were two price changes during Ron Miller's (brief) tenure, and Michael Eisner oversaw 31 price increases. Statistically speaking, this reduces our ability to say things about the data.
 
@@ -247,7 +252,41 @@ summary(lm1)
 ```
 
 
-# Question 3
+# Tracking inflation
 Adjusted for inflation, does it cost more to visit Disney today than it did in 1971? 
 
-Yes. Yes. Yes. Adjusted for inflation, the cost of admission to the Magic Kingdom in 1971 was $21.64. The cost of admission on of October 13th, 2018 is \$122. 
+**Yes**. **Yes**. **Yes**. Adjusted for inflation, the cost of admission to the Magic Kingdom in 1971 was \$21.64. The cost of admission on October $13^{th}$, 2018 is \$122.
+
+Let's add to our previous plot.
+
+```{r track, echo = FALSE}
+yr_1971 <- avg.cpi / as.numeric(avg.cpi['1971']) #using 1971 as the base year
+adj_1971 <- data.frame(Date = index(yr_1971), yr_1971)
+rownames(adj_1971) <- NULL
+
+adj_1971 <- adj_1971 %>% 
+  filter(Date >= "1971-12-01") %>% 
+  mutate(adj_1971 = 3.5 * CPIAUCSL, Year = year(Date)) %>% 
+  select(-CPIAUCSL)
+#dim(adj_1971)
+
+ROD <- left_join(newer_data, adj_1971, by = "Year") %>% 
+  select(-Date.y) %>% 
+  rename(Date = Date.x)
+#dim(ROD)
+
+ROD_plot <- ROD %>% 
+  ggplot(aes(y = ADJ_Price, x = Date, col = CEO)) +
+  geom_point(size = 2.5) +
+  scale_color_discrete(breaks = c("Disney", "Tatum", "Walker", "Miller", "Eisner", "Iger")) +
+  theme_bw() +
+  theme(legend.position = c(0.15, 0.75), legend.text = element_text(size = 15)) +
+  labs(y = "Adjusted Price (USD)") +
+  coord_cartesian(ylim = c(0, 130)) +
+  geom_point(data = ROD, aes(x = Date, y = adj_1971), col = "red", size = 2.5)
+
+ROD_plot
+```
+
+The line of red dots along the bottom of the plot represents the cost of admission to the Magic Kingdom if the cost had just tracked inflation.
+
