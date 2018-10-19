@@ -19,22 +19,22 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 ```
 
 # Introduction
-Trips to Walt Disney World are expensive. Add to the expense the frustration of ever increasing ticket prices. It seems that every few months we hear about another hike for the cost of tickets. With the recent news that [variable pricing](http://time.com/money/5405838/disney-world-ticket-prices-2018/) for tickets is one the way I wanted to take a look at the history of the cost of a single day admission to the Magic Kingdom and ask a few quesitons:
+Trips to Walt Disney World are expensive and sometimes frustrating. Ever-increasing ticket prices can add to the frustration. It seems that every few months we hear about another hike in ticket prices. With the recent news that [variable pricing](http://time.com/money/5405838/disney-world-ticket-prices-2018/) for tickets is on the way, I wanted to take a look at the history of the cost of a single day admission to the Magic Kingdom and ask a few questions:
 
-1. Has the rate of increase gotten higher recently?
+1. Are ticket prices rising faster now?
 1. Did the different Disney CEOs raise ticket prices at different rates? 
 1. Adjusted for inflation, does it cost more to visit Walt Disney World's Magic Kingdom today than it did in 1971? 
 
 ### TL;DR
 
 1. Yes, the admission price under Bob Iger is increasing faster than it did under Michael Eisner.
-1. No, we can't tell them apart but this is due to statistical issues with the number of increases made under each CEO. 
+1. No, we can't tell the CEOs apart but this is due to statistical issues with the number of increases made under each CEO. 
 1. **Yes**. **Yes**. **Yes**. Adjusted for inflation, the cost of a one-day ticket to the Magic Kingdom in 1971 was \$21.65 and today it is approximately \$122.
 
 
 # Data
 
-To ask these questions I needed data. I needed data on the historic price of admission to the Magic Kingdom, the dates those ticket prices were in effect, and the Disney CEO at the time. It wasn't hard to find websites with the history of admission prices. Whenever possible, I selected the most expensive ticket available that was not a park hopper. I used the data from this [site](http://allears.net/walt-disney-world/wdw-planning/wdw-ticket-increase-guide/) and cross referenced it [here](https://www.travelandleisure.com/trip-ideas/disney-vacations/disney-world-ticket-costs-over-time). I got the dates for the Disney CEOs from the book [Disney War](https://en.wikipedia.org/wiki/DisneyWar) by James B. Stewart and cross referenced them with this [Wikipedia article](https://en.wikipedia.org/wiki/List_of_management_of_The_Walt_Disney_Company). Please let me know if I inadvertently included the incorrect data in this post, and please point me to your source so I can update the post.
+To ask these questions I needed data. I needed data on: the historic price of admission to the Magic Kingdom; the dates those ticket prices were in effect; and the Disney CEO at the time. It wasn't hard to find websites with the history of admission prices. Whenever possible, I selected the most expensive ticket available that was not a park-hopper. I used the data from this [site](http://allears.net/walt-disney-world/wdw-planning/wdw-ticket-increase-guide/) and cross referenced it [here](https://www.travelandleisure.com/trip-ideas/disney-vacations/disney-world-ticket-costs-over-time). I got the dates for the Disney CEOs from the book [Disney War](https://en.wikipedia.org/wiki/DisneyWar) by James B. Stewart and cross referenced them with this [Wikipedia article](https://en.wikipedia.org/wiki/List_of_management_of_The_Walt_Disney_Company). Please let me know if I inadvertently included the incorrect data in this post, and please point me to your source so I can update the post.
 
 Because this is a data science blog post, I've posted the code to a [repository](https://github.com/butterflyology/Theme_Park_prices) so that anyone with a computer and the desire can recreate the analyses presented here.
 
@@ -56,7 +56,7 @@ library("gridExtra") # To plot multiple plots in one pane
 Let's take a look at the data set I created. There are three columns in the data set:
 
 1. `Date` - The date the admission price was in effect.
-1. `Price` - The cose of single-day admission to the Magic Kingdom
+1. `Price` - The cost of single-day admission to the Magic Kingdom
 1. `CEO` - The Disney CEO at the time of the price.
 
 ```{r import, echo = FALSE}
@@ -72,7 +72,7 @@ knitr::kable(x = data, format = "html", align = "c", col.names = col_names) %>%
 
 # Visuals
 
-You always want to look at the data. Here I plot the dates of the admission price on the horizontal axis (x-axis) and the cost of admission to the Magic Kingdom on the vertical axis (y-axis) in US Dollars.
+You always want to look at the data. Here's a plot of admission price by date on the horizontal (x-axis) and the cost of admission to the Magic Kingdom on the vertical axis (y-axis) in US Dollars. Each point's color represents the Disney CEO at the time the price increased.
 
 ```{r plot_1, echo = FALSE, results = FALSE}
 prices <- data %>% 
@@ -86,7 +86,7 @@ prices <- data %>%
 prices
 ```
 
-Does it look like Mr. Iger has upped the rate of admission increases faster than the other CEOs? Maybe. But this isn't an apples to apples comparison. This is a pretty plot but isn't a fair comparison. We need to adjust the prices for inflation. We will adjust inflation using the "Consumer Price Index for All Urban Consumers: All Items" from the rockstars over at the Bureau of Labor Statistics.
+Does it look like Mr. Iger has upped the rate of admission increases faster than the other CEOs? Maybe. But this isn't an apples-to-apples comparison. We need to adjust the prices for inflation. We will adjust inflation using the "Consumer Price Index for All Urban Consumers: All Items" from the rockstars over at the Bureau of Labor Statistics.
 
 We will pull out the Consumer Price Index (CPI) for the dates the admission prices went into effect and normalize them based on a 1971 baseline (the year WDW opened). Then we convert the older prices to 2018 US Dollars.
 
@@ -150,7 +150,7 @@ newer
 ```
 
 
-It may be beneficial to see the adjusted prices side by side with the original prices. 
+It's helpful to see the adjusted prices side by side with the original prices. 
 
 ```{r side_by_side, echo = FALSE}
 prices <- prices + 
@@ -162,7 +162,7 @@ grid.arrange(prices, newer, ncol = 2)
 ```
 
 
-What kind of blows my mind is that the Magic Kingdom's prices have, on occasion, not kept up with inflation. When I saw this I went and manually checked the adjustments I calculated using the Bureau of Labor Statistics own [calculator](https://data.bls.gov/cgi-bin/cpicalc.pl) and my calculations were pretty close each time (within \$0.20).
+What kind of blows my mind is that the Magic Kingdom's prices have, on occasion, not kept up with inflation. When I saw this I manually checked the adjustments I calculated using the Bureau of Labor Statistics own [calculator](https://data.bls.gov/cgi-bin/cpicalc.pl). My calculations were within \$0.20 each time.
 
 On to the questions.
 
@@ -171,7 +171,7 @@ On to the questions.
 
 The first two questions are related. To refresh your recollection: 
 
-1. Has the rate of increase gotten higher recently?
+1. Are ticket prices rising faster now?
 
 Let's look at the rate of increase for each CEO. We will fit a straight line through each CEOs prices and use that line to describe each pricing regime. We will use the same plot as before and overlay lines on to it. Roy O. Disney was CEO for only one price point and won't get a line. 
 
@@ -189,7 +189,7 @@ newer_data %>%
 ```
 
 
-The shaded reagions around the lines represent the confidence interval around the line. A confidence interval is how sure we are of our estimate of the line, and narrow intervals are better.
+The shaded regions around the lines represent the confidence interval around the line. A confidence interval is how sure we are of our estimate of the line, and narrow intervals are better.
 
 But we are interested in the steepness (slope) of the lines.Are the slopes between Michael Eisner and Bob Iger the same? They don't appear to be the same but I want to check. I ran another analysis to ask this question.
 
@@ -242,25 +242,30 @@ Eisner_Iger %>%
 
 Did the different Disney CEOs raise ticket prices at different rates? 
 
-No, we can't tell them apart.
+No, we can't tell them apart. But wait, you just said Eisner and Iger were differnt. If we just look at Eisner and Iger at the same time we can tell them apart, but if look at all the CEOs at the same time we encounter an issue. We have unbalanced data and that limits our ability to make inferences and tell things apart.
 
-Looking at the adjusted for inflation figure, it does seem that the different CEOs raised ticket prices differently. If we ask this all at the same time the answer is suprisingly, no. But this has more to do with the number of data points we have and the fact that the CEOs raised prices a different number of times. For example, there were two price changes during Ron Miller's (brief) tenure, and Michael Eisner oversaw 31 price increases. Statistically speaking, this reduces our ability to say things about the data.
-
-```{r CEOs, echo = FALSE, results = "hide"}
+```{r CEOs, echo = FALSE, results = "hide", warning = FALSE}
 lm1 <- lm(ADJ_Price ~ Date + CEO, data = newer_data)
 summary(lm1)
+
+
+lm2 <- aov(ADJ_Price ~ Date + CEO, data = newer_data)
+summary(lm2)
+TukeyHSD(lm2, which = 'CEO')
 ```
 
 
 # Tracking inflation
 Adjusted for inflation, does it cost more to visit Disney today than it did in 1971? 
 
-**Yes**. **Yes**. **Yes**. Adjusted for inflation, the cost of admission to the Magic Kingdom in 1971 was \$21.64. The cost of admission on October $13^{th}$, 2018 is \$122.
+**Yes**. **Yes**. **Yes**. Adjusted for inflation, the cost of admission to the Magic Kingdom in 1971 was \$21.64. The cost of admission on October 13th, 2018 is \$122.
+
+If the cost of Magic Kingdom admission had simply tracked inflation, the cost today would be \$21.64.
 
 Let's add to our previous plot.
 
 ```{r track, echo = FALSE}
-yr_1971 <- avg.cpi / as.numeric(avg.cpi['1971']) #using 1971 as the base year
+yr_1971 <- avg.cpi / as.numeric(avg.cpi['1971']) # using 1971 as the base year
 adj_1971 <- data.frame(Date = index(yr_1971), yr_1971)
 rownames(adj_1971) <- NULL
 
