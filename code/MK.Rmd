@@ -86,11 +86,11 @@ prices <- data %>%
 prices
 ```
 
-Does it look like Mr. Iger has upped the rate of admission increases faster than the other CEOs? Maybe. But this isn't an apples-to-apples comparison. We need to adjust the prices for inflation. We will adjust inflation using the "Consumer Price Index for All Urban Consumers: All Items" from the rockstars over at the Bureau of Labor Statistics.
+Does it look like Mr. Iger has upped the rate of admission increases faster than the other CEOs? Maybe. But this isn't an apples-to-apples comparison. We need to adjust the prices for inflation. We will adjust inflation using the "Consumer Price Index for All Urban Consumers: All Items" from the rock stars over at the Bureau of Labor Statistics.
 
 We will pull out the Consumer Price Index (CPI) for the dates the admission prices went into effect and normalize them based on a 1971 baseline (the year WDW opened). Then we convert the older prices to 2018 US Dollars.
 
-We've added three new columns to out dataset:
+We've added three new columns to out data set:
 
 1. `Year` - We used this column to calculate the CPI
 1. `Adjustment` - The adjusted CPI value
@@ -241,7 +241,7 @@ Eisner_Iger %>%
 
 Did the different Disney CEOs raise ticket prices at different rates? 
 
-No, we can't tell them apart. But wait, you just said Eisner and Iger were differnt. If we just look at Eisner and Iger at the same time we can tell them apart, but if look at all the CEOs at the same time we encounter an issue. We have unbalanced data and that limits our ability to make inferences and tell things apart.
+No, we can't tell them apart. But wait, you just said Eisner and Iger were different. If we just look at Eisner and Iger at the same time we can tell them apart, but if look at all the CEOs at the same time we encounter an issue. We have unbalanced data and that limits our ability to make inferences and tell things apart.
 
 ```{r CEOs, echo = FALSE, results = "hide", warning = FALSE}
 lm1 <- lm(ADJ_Price ~ Date + CEO, data = newer_data)
