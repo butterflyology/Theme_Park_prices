@@ -285,7 +285,7 @@ The line of red dots along the bottom of the plot represents the cost of admissi
 
 # The next price increase
 
-```{r, next_increase}
+```{r, next_increase, eval = FALSE, echo = FALSE}
 # Days between price hikes
 nd_diffs <- lead(newer_data$Date, 1) - newer_data$Date
 length(nd_diffs)
@@ -299,11 +299,23 @@ axis(1, at = seq(0, 1000, by = 100))
 Iger
 lm_Iger %>% tidy()
 
+# days between price increases
+Iger_days <- lead(Iger$Date, 1) - Iger$Date
+Iger_days <- as.numeric(Iger_days[-length(Iger_days)])
 
-lead(Iger$Date, 1) - Iger$Date
+# price increases
+Iger_prices <- lead(Iger$ADJ_Price, 1) - Iger$ADJ_Price
+Iger_prices <- as.numeric(Iger_prices[-length(Iger_prices)])
 
 
+#plot time since price increase and the increase in adjusted dollars
+plot(x = Iger_days, y = Iger_prices, pch = 19, las = 1, cex = 2, xlab = "Days", ylab = "Price increase (USD)", ylim = c(0, 10))
+# Huh. No stron association between the length of time since an increase and the increase
 
-
+# Using our model, lets predict out based on new data(days for an increase)
+Date <- as.Date("2019-12-01")
+predict(lm_Iger, newdata = new_Iger)
+# Predicts next price will be ~129. 
 ```
 
+Len Testa and others have noted that the current pricing scheme does not contain information for December, 2019; this corresponds with the approximate opening date for Star Wars Galaxy's Edge. If we predict out to 1 December, 2019 the model predicts \$129. I think this will be low because themed entertainment hasn't seen anything like Galaxy's Edge. But, it is a prediction based on historic data and is testable.
