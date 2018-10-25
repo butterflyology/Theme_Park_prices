@@ -22,14 +22,14 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 Trips to Walt Disney World are expensive and sometimes frustrating. Ever-increasing ticket prices can add to the frustration. It seems that every few months we hear about another hike in ticket prices. With the recent news that [variable pricing](http://time.com/money/5405838/disney-world-ticket-prices-2018/) for tickets is on the way, I wanted to take a look at the history of the cost of a single day admission to the Magic Kingdom and ask a few questions:
 
 1. Are ticket prices rising faster now?
-1. Did the different Disney CEOs raise ticket prices at different rates? 
 1. Adjusted for inflation, does it cost more to visit Walt Disney World's Magic Kingdom today than it did in 1971? 
+1. What will the next price increase be?
 
 ### TL;DR
 
 1. Yes, the admission price under Bob Iger is increasing faster than it did under Michael Eisner.
-1. No, we can't tell the CEOs apart but this is due to statistical issues with the number of increases made under each CEO. 
 1. **Yes**. **Yes**. **Yes**. Adjusted for inflation, the cost of a one-day ticket to the Magic Kingdom in 1971 was \$21.65 and today it is approximately \$122.
+1. I predict the next price increase will be 
 
 
 # Data
@@ -50,6 +50,11 @@ library("lubridate") # we will need some functions from here to work with date d
 library("quantmod") # we will use this to get consumer price index data
 library("magicfor") # package to save output from a for loop
 library("gridExtra") # To plot multiple plots in one pane
+library("broom") # Will make the lm output pretty
+
+sink("packages.txt")
+sessionInfo()
+sink()
 ```
 
 
@@ -237,23 +242,6 @@ Eisner_Iger %>%
 ```
 
 
-# Rate of increase
-
-Did the different Disney CEOs raise ticket prices at different rates? 
-
-No, we can't tell them apart. But wait, you just said Eisner and Iger were different. If we just look at Eisner and Iger at the same time we can tell them apart, but if look at all the CEOs at the same time we encounter an issue. We have unbalanced data and that limits our ability to make inferences and tell things apart.
-
-```{r CEOs, echo = FALSE, results = "hide", warning = FALSE}
-lm1 <- lm(ADJ_Price ~ Date + CEO, data = newer_data)
-summary(lm1)
-
-
-lm2 <- aov(ADJ_Price ~ Date + CEO, data = newer_data)
-summary(lm2)
-TukeyHSD(lm2, which = 'CEO')
-```
-
-
 # Tracking inflation
 Adjusted for inflation, does it cost more to visit Disney today than it did in 1971? 
 
@@ -293,4 +281,29 @@ ROD_plot
 ```
 
 The line of red dots along the bottom of the plot represents the cost of admission to the Magic Kingdom if the cost had just tracked inflation.
+
+
+# The next price increase
+
+```{r, next_increase}
+# Days between price hikes
+nd_diffs <- lead(newer_data$Date, 1) - newer_data$Date
+length(nd_diffs)
+# remove the last value (which is NA)
+nd_diffs <- as.numeric(nd_diffs[-length(nd_diffs)])
+
+x_text <- seq(0, 1000, by = 100)
+hist(nd_diffs, col = "grey", main = "", breaks = 30, xlim = c(0, 1000), xlab = "Days", ylab = "Frequency", xaxt = "n", las = 1)
+axis(1, at = seq(0, 1000, by = 100))
+
+Iger
+lm_Iger %>% tidy()
+
+
+lead(Iger$Date, 1) - Iger$Date
+
+
+
+
+```
 
