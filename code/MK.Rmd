@@ -53,7 +53,7 @@ library("magicfor") # package to save output from a for loop
 library("gridExtra") # To plot multiple plots in one pane
 library("broom") # Will make the lm output pretty
 
-sink("packages.txt")
+sink("MK_admission_packages.txt")
 sessionInfo()
 sink()
 ```
