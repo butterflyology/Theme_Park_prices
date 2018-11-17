@@ -1,0 +1,41 @@
+---
+title: "Standing in the Rain"
+subtitle: "When it rains, is it raining longer?"
+author: "Chris Hamm"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    toc_depth: 3
+ # pdf_document:
+ #   toc: true
+ #   number_sections: true
+ #   fig_caption: yes
+---
+
+
+
+```{r Preliminaries}
+set.seed(8346436)
+
+library("rwunderground")
+
+sink("Rain_packages.txt") # save the packages used and versions
+sessionInfo()
+sink()
+
+```
+
+
+Geet the weather from WDW
+```{r get_weather}
+# lookup the nearby weather stations
+zip = 32830
+geolookup(set_location(territory = "Florida", city = "Lake Buena Vista"))
+
+```
+
+
+
+

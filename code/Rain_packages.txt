@@ -1,0 +1,21 @@
+R version 3.4.4 (2018-03-15)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS  10.14.1
+
+Matrix products: default
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.4/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] rwunderground_0.1.8
+
+loaded via a namespace (and not attached):
+ [1] compiler_3.4.4  backports_1.1.2 rsconnect_0.8.8 rprojroot_1.3-2
+ [5] htmltools_0.3.6 tools_3.4.4     yaml_2.2.0      Rcpp_0.12.19   
+ [9] rmarkdown_1.10  knitr_1.20      digest_0.6.18   evaluate_0.12  
