@@ -19,16 +19,16 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 ```
 
 # Introduction
-Trips to Walt Disney World are expensive and sometimes frustrating. Ever-increasing ticket prices can add to the frustration. It seems that every few months we hear about another hike in ticket prices. With the recent news that [variable pricing](http://time.com/money/5405838/disney-world-ticket-prices-2018/) for tickets is on the way, I wanted to take a look at the history of the cost of a single day admission to the Magic Kingdom and ask a few questions:
+Trips to Walt Disney World are expensive and becoming more so all the time. It seems that every few months we hear about another hike in ticket prices and March of 2019 was no exception. With the announcment that Star Wars Galaxy's Edge is opening in August 2019 at Walt Disney World there was an associated hike in [ticket prices](https://www.orlandosentinel.com/business/tourism/os-cfb-disney-ticket-prices-20190313-story.html). Add this to the news that [variable pricing](http://time.com/money/5405838/disney-world-ticket-prices-2018/) was introduced in October 2018. Ever-increasing ticket prices can make it feel like Disney is pricing out the middle-class.
 
-1. Are ticket prices rising faster now?
+With all the recent price increases, I wanted to take a look at the history of the cost of a single day admission to the Magic Kingdom and ask a few questions:
+
 1. Adjusted for inflation, does it cost more to visit Walt Disney World's Magic Kingdom today than it did in 1971? 
 1. What will the next price increase be?
 
 ### TL;DR
 
-1. Yes, the admission price under Bob Iger is increasing faster than it did under Michael Eisner.
-1. **Yes**. **Yes**. **Yes**. Adjusted for inflation, the cost of a one-day ticket to the Magic Kingdom in 1971 was \$21.65 and today it is approximately \$122.
+1. **Yes**. **Yes**. **Yes**. Adjusted for inflation, the cost of a one-day ticket to the Magic Kingdom in 1971 was \$21.65 and today it is \$139.
 1. I predict the next price increase will be 
 
 
