@@ -279,6 +279,8 @@ ROD_plot <- ROD %>%
   geom_point(data = ROD, aes(x = Date, y = adj_1971), col = "red", size = 2.5)
 
 ROD_plot
+
+ggsave(filename = "../output/WDW_price.jpeg", plot = ROD_plot, scale = 1, dpi = 300, device = "jpeg")
 ```
 
 The line of red dots along the bottom of the plot represents the cost of admission to the Magic Kingdom if the cost had just tracked inflation.
